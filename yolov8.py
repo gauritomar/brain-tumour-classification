@@ -3,6 +3,7 @@ from ultralytics import YOLO
 from PIL import Image, ImageDraw
 from tqdm import tqdm
 import os
+import json
 
 
 def return_path(tumour_type, mri_type=None):
@@ -62,15 +63,10 @@ for tumour_type in tqdm(tumour_types, desc="Tumour Types"):
         for image in tqdm(images, desc="Processing Images"):
             image_path = os.path.join(mri_path, image)
             output_folder_path = os.path.join('output', tumour_type, mri_type)
-            os.makedirs(output_folder_path, exist_ok=True)  # Ensure the output folder exists
+            os.makedirs(output_folder_path, exist_ok=True) 
             output_image_path = os.path.join(output_folder_path, image)
             image, detection_results = detector.run(image_path)
 
-            draw = ImageDraw.Draw(image)
-            for detection in detection_results:
-                box = detection['box_points']
-                draw.rectangle(box, outline="red", width=4)
-                draw.text((box[0], box[1]), f"{detection['class']} {detection['confidence']:.2f}", fill="red")
-
-            image.save(output_image_path)
+            with open('bbox.txt', "a") as f:
+                f.write(f"{image_path}\t{json.dumps(detection_results)}\n")
 
